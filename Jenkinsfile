@@ -4,8 +4,7 @@ pipeline{
 
   stages{
 
-      stage("build"){
-       
+      stage("build"){       
        steps{
         script {
                     def x = 10
@@ -22,8 +21,8 @@ pipeline{
                 }
        }
       }
-        stage("test"){
-       
+   
+        stage("test"){       
        steps{
         echo 'auto triggering...'
         echo 'testing the application...'
