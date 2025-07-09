@@ -13,6 +13,7 @@ pipeline{
         stage("test"){
        
        steps{
+        echo 'auto triggering'
         echo 'testing the application...'
        }
       }
