@@ -32,7 +32,7 @@ pipeline{
        
        steps{
         echo 'deploying the application...'
-        ech0 'deployement done'
+        echo 'deployement done'
        }
       }
   }
