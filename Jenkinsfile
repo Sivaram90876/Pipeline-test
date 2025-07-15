@@ -33,6 +33,7 @@ pipeline{
        steps{
         echo 'deploying the application...'
         echo 'deployement done'
+        echo 'another deployment'
        }
       }
   }
