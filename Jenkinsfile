@@ -12,7 +12,7 @@ pipeline{
                     def sum = x + y
                     def difference = x - y
                     def product = x * y
-                    def quotient = x / y
+                    def quotientyyy = x / y
 
                     echo "Sum: ${sum}"
                     echo "Difference: ${difference}"
