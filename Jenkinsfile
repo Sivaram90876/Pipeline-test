@@ -17,7 +17,7 @@ pipeline{
                     echo "Sum: ${sum}"
                     echo "Difference: ${difference}"
                     echo "Product: ${product}"
-                    echo "Quotient: ${quotient}"
+                    echo "Quotient: ${quotientyyy}"
                 }
        }
       }
