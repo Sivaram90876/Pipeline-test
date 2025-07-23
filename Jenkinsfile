@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Define your Docker Hub username and image name
-        DOCKER_HUB_USERNAME = 'your_docker_hub_username' // Replace with your Docker Hub username
+        DOCKER_HUB_USERNAME = 'sivaram9087' // Replace with your Docker Hub username
         DOCKER_IMAGE_NAME = "pipeline-test-app" // Name of your Docker image
     }
 
