@@ -65,22 +65,9 @@ pipeline {
 
     post {
         always {
-            steps { // <--- ADDED
-                // docker logout is typically handled by docker.withRegistry scope exit,
-                // but can be explicit if needed (uncomment below)
-                // sh 'docker logout || true'
-                cleanWs() // Clean up workspace after build - good practice
-            } // <--- ADDED
+        steps { // <--- The problematic 'steps' block
+            echo 'Pipeline finished!'
         }
-        success {
-            steps { // <--- ADDED
-                echo 'Pipeline finished successfully! Image pushed to Docker Hub.'
-            } // <--- ADDED
-        }
-        failure {
-            steps { // <--- ADDED
-                echo 'Pipeline failed! Check build logs for errors.'
-            } // <--- ADDED
-        }
+      }
     }
 }
