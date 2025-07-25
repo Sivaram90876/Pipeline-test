@@ -1,0 +1,13 @@
+{
+  "name": "pipeline-test-app",
+  "version": "1.0.0",
+  "description": "A simple app for Jenkins pipeline testing",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [],
+  "author": "sivaram9087",
+  "license": "ISC"
+}
