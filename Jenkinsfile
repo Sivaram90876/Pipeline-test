@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_USERNAME = 'sivaram9087' // Your Docker Hub username
         DOCKER_IMAGE_NAME = "pipeline-test-app" // Your Docker image name
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials' // ID of your Jenkins credentials
+        DOCKER_CREDENTIALS_ID = 'Docker_credentials' // ID of your Jenkins credentials
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
