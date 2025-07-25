@@ -33,7 +33,6 @@ pipeline {
                     def latestDockerImageTag = "${env.DOCKER_HUB_USERNAME}/${env.DOCKER_IMAGE_NAME}:latest"
 
                     echo "Building Docker image: ${dockerImageTag}"
-                    // '.' means Dockerfile in the current (workspace) directory
                     def customImage = docker.build("${dockerImageTag}", '.')
 
                     echo "Logging in to Docker Hub..."
@@ -66,14 +65,22 @@ pipeline {
 
     post {
         always {
-            // Docker Pipeline plugin handles logout automatically with withRegistry scope
-            // cleanWs() // Clean up workspace after build - good practice
+            steps { // <--- ADDED
+                // docker logout is typically handled by docker.withRegistry scope exit,
+                // but can be explicit if needed (uncomment below)
+                // sh 'docker logout || true'
+                cleanWs() // Clean up workspace after build - good practice
+            } // <--- ADDED
         }
         success {
-            echo 'Pipeline finished successfully! Image pushed to Docker Hub.'
+            steps { // <--- ADDED
+                echo 'Pipeline finished successfully! Image pushed to Docker Hub.'
+            } // <--- ADDED
         }
         failure {
-            echo 'Pipeline failed! Check build logs for errors.'
+            steps { // <--- ADDED
+                echo 'Pipeline failed! Check build logs for errors.'
+            } // <--- ADDED
         }
     }
 }
