@@ -1,10 +1,11 @@
 pipeline {
-    agent any // Or a specific agent with Docker installed, e.g., agent { label 'docker-host' }
+    agent any
 
     environment {
-        // Define your Docker Hub username and image name
-        DOCKER_HUB_USERNAME = 'sivaram9087' // Replace with your Docker Hub username
-        DOCKER_IMAGE_NAME = "pipeline-test-app" // Name of your Docker image
+        DOCKER_HUB_USERNAME = 'sivaram9087' // Your Docker Hub username
+        DOCKER_IMAGE_NAME = "pipeline-test-app" // Your Docker image name
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials' // ID of your Jenkins credentials
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -14,43 +15,32 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build Application') { // Renamed for clarity, assuming app build here
             steps {
-                script {
-                    def num1 = 10
-                    def num2 = 5
-                    def sum = num1 + num2
-                    def difference = num1 - num2
-                    def product = num1 * num2
-                    def quotient = num1 / num2
-
-                    echo "Sum: ${sum}"
-                    echo "Difference: ${difference}"
-                    echo "Product: ${product}"
-                    echo "Quotient: ${quotient}"
-                }
+                // *** IMPORTANT ***
+                // Replace this with your actual application build steps, e.g.:
+                // sh 'npm install'
+                // sh 'mvn clean package'
+                // If your Dockerfile handles all building, you might just have:
+                echo 'Application build step (if any) complete or handled by Dockerfile.'
             }
         }
 
         stage('Docker Build and Push') {
             steps {
                 script {
-                    // Define the image tag (using Jenkins BUILD_NUMBER for uniqueness)
                     def dockerImageTag = "${env.DOCKER_HUB_USERNAME}/${env.DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
                     def latestDockerImageTag = "${env.DOCKER_HUB_USERNAME}/${env.DOCKER_IMAGE_NAME}:latest"
 
-                    // Build the Docker image
                     echo "Building Docker image: ${dockerImageTag}"
-                    def customImage = docker.build("${dockerImageTag}", '.') // '.' means Dockerfile in current directory
+                    // '.' means Dockerfile in the current (workspace) directory
+                    def customImage = docker.build("${dockerImageTag}", '.')
 
-                    // Log in to Docker Hub using credentials defined in Jenkins
-                    // 'docker-hub-credentials' is the ID you set in Jenkins Credentials
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-                        // Push the image with the build number tag
+                    echo "Logging in to Docker Hub..."
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS_ID) {
                         echo "Pushing Docker image: ${dockerImageTag} to Docker Hub"
                         customImage.push()
 
-                        // Also push it with the 'latest' tag
                         echo "Pushing Docker image: ${latestDockerImageTag} to Docker Hub"
                         customImage.push("latest")
                     }
@@ -61,7 +51,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Add your test commands here (e.g., sh 'npm test')
+                // Add your actual test commands here (e.g., sh 'npm test')
             }
         }
 
@@ -69,21 +59,21 @@ pipeline {
             steps {
                 echo 'Deploying application...'
                 // This stage would contain commands to deploy your Docker image
-                // For now, it's just a placeholder.
+                // This is where you'd add SSH commands, Kubernetes, etc.
             }
         }
     }
+
     post {
         always {
-            cleanWs() // Clean up workspace after build
+            // Docker Pipeline plugin handles logout automatically with withRegistry scope
+            // cleanWs() // Clean up workspace after build - good practice
         }
         success {
-            echo 'Pipeline finished successfully!'
-            // You might add a step here to update GitHub commit status to "success"
+            echo 'Pipeline finished successfully! Image pushed to Docker Hub.'
         }
         failure {
-            echo 'Pipeline failed!'
-            // You might add a step here to update GitHub commit status to "failure"
+            echo 'Pipeline failed! Check build logs for errors.'
         }
     }
 }
