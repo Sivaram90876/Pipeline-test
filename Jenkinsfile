@@ -62,8 +62,8 @@ pipeline {
             echo 'Pipeline finished! Cleaning up...'
 
             // Optional cleanup: remove local Docker images if Jenkins agent is persistent
-            sh "docker rmi ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${IMAGE_TAG} || true"
-            sh "docker rmi ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:latest || true"
+          //  sh "docker rmi ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${IMAGE_TAG} || true"
+          //  sh "docker rmi ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:latest || true"
         }
     }
 }
