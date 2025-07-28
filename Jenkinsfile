@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USERNAME = 'sivaram9087' // Your Docker Hub username
-        DOCKER_IMAGE_NAME = "pipeline-test-app" // Your Docker image name
-        DOCKER_CREDENTIALS_ID = 'Docker_credentials' // Your Jenkins credential ID for Docker Hub
+        DOCKER_HUB_USERNAME = 'sivaram9087' 
+        DOCKER_IMAGE_NAME = "pipeline-test-app" 
+        DOCKER_CREDENTIALS_ID = 'Docker_credentials' 
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
@@ -45,14 +45,12 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Optional: Add test steps like sh 'npm test' if needed
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Deploying application...'
-                // Add deployment logic here (e.g., kubectl, SSH to server, etc.)
             }
         }
     }
