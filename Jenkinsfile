@@ -9,21 +9,20 @@ pipeline {
         }
 
         stage('Build and Push Docker Image') {
-            steps {
-                script {
-                    def imageName = "sivaram9087/nature"
-                    def imageTag = "latest"
+    steps {
+        script {
+            def imageName = "sivaram9087/nature"
+            def imageTag = "latest"
 
-                    withCredentials([usernamePassword(credentialsId: 'Dockerhub_credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                        // Use sh for shell commands on Linux
-                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-                    }
-
-                    sh "docker build -t ${imageName}:${imageTag} ."
-                    sh "docker push ${imageName}:${imageTag}"
-                }
+            withCredentials([usernamePassword(credentialsId: 'Dockerhub_credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
             }
+
+            // Corrected command: Use 'docker buildx build' with '--push' flag
+            sh "docker buildx build --platform linux/amd64 -t ${imageName}:${imageTag} . --push"
         }
+    }
+}
 
         stage('Deploy to Kubernetes') {
     steps {
