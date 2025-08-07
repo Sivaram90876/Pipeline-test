@@ -26,16 +26,16 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    // Use a Linux-native sed command to update the image tag in deployment.yaml
-                    sh "sed -i 's|image: sivaram9087/nature:.*|image: sivaram9087/nature:latest|g' deployment.yaml"
-                    
-                    sh "kubectl apply -f deployment.yaml"
-                    
-                    sh "kubectl rollout status deployment/nature"
-                }
-            }
+    steps {
+        script {
+            sh "sed -i 's|image: sivaram9087/nature:.*|image: sivaram9087/nature:latest|g' deployment.yaml"
+            
+            // Corrected command: Use minikube's kubectl wrapper
+            sh "minikube kubectl -- apply -f deployment.yaml"
+            
+            sh "minikube kubectl -- rollout status deployment/nature"
         }
+    }
+}
     }
 }
