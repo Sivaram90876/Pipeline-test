@@ -29,7 +29,7 @@ pipeline {
             steps {
                 script {
                     // This is a crucial step to trigger a rolling update
-                    // The path needs to be a Linux path, and the command must be sh
+                    // The path needs to be a relative path and the command must be sh
                     // Using sed for in-place text replacement
                     sh "sed -i 's|image: sivaram9087/nature:.*|image: sivaram9087/nature:latest|g' deployment.yaml"
                     
