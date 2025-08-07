@@ -15,11 +15,12 @@ pipeline {
                     def imageTag = "latest"
 
                     withCredentials([usernamePassword(credentialsId: 'Dockerhub_credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-    bat "docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_PASSWORD%"
-}
+                        // Use sh for shell commands on Linux
+                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
+                    }
 
-                    bat "docker build -t ${imageName}:${imageTag} ."
-                    bat "docker push ${imageName}:${imageTag}"
+                    sh "docker build -t ${imageName}:${imageTag} ."
+                    sh "docker push ${imageName}:${imageTag}"
                 }
             }
         }
@@ -27,11 +28,13 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    bat """
-                        powershell -Command "(Get-Content 'C:\\Users\\HP\\Pipeline-test\\deployment.yaml') -replace 'image: sivaram9087/nature:.*', 'image: sivaram9087/nature:latest' | Set-Content 'C:\\Users\\HP\\Pipeline-test\\deployment.yaml'"
-                    """
-                    bat "kubectl apply -f C:\\Users\\HP\\Pipeline-test\\deployment.yaml"
-                    bat "kubectl rollout status deployment/nature"
+                    // This is a crucial step to trigger a rolling update
+                    // The path needs to be a Linux path, and the command must be sh
+                    // Using sed for in-place text replacement
+                    sh "sed -i 's|image: sivaram9087/nature:.*|image: sivaram9087/nature:latest|g' deployment.yaml"
+                    
+                    sh "kubectl apply -f deployment.yaml"
+                    sh "kubectl rollout status deployment/nature"
                 }
             }
         }
