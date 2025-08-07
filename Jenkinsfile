@@ -15,6 +15,7 @@ pipeline {
                     def imageTag = "latest"
 
                     withCredentials([string(credentialsId: 'dockerhub-password', variable: 'DOCKERHUB_PASSWORD'), string(credentialsId: 'dockerhub-username', variable: 'DOCKERHUB_USERNAME')]) {
+                        // Use the environment variables created by withCredentials
                         bat "docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_PASSWORD%"
                     }
 
