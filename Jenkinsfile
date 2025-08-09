@@ -11,13 +11,18 @@ pipeline {
                 sh '''
                     mkdir -p $HOME/.local/bin
                     
+                    # Install Minikube
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
                     mv minikube-linux-amd64 $HOME/.local/bin/minikube
                     
+                    # Install kubectl
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
                     mv kubectl $HOME/.local/bin/kubectl
+                    
+                    # Install iptables, required for Minikube with --driver=none
+                    sudo apt-get update && sudo apt-get install -y iptables
                 '''
             }
         }
