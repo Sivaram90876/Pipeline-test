@@ -22,7 +22,8 @@ pipeline {
                     mv kubectl $HOME/.local/bin/kubectl
                     
                     # Install iptables, required for Minikube with --driver=none
-                    sudo apt-get update && sudo apt-get install -y iptables
+                    # Removed 'sudo' as the Jenkins agent user likely has root permissions
+                    apt-get update && apt-get install -y iptables
                 '''
             }
         }
