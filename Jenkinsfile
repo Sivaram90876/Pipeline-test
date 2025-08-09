@@ -5,26 +5,24 @@ pipeline {
             args '--user 0'
         }
     }
-    
-    environment {
-        PATH = "${env.PATH}:${env.HOME}/.local/bin"
+    options {
+        disableConcurrentBuilds()
     }
-
     stages {
         stage('Install Tools') {
             steps {
                 sh '''
-                    # Install curl, gettext-base, and iptables
-                    apt-get update && apt-get install -y curl gettext-base iptables
-
-                    mkdir -p /root/.local/bin
+                    set -e
+                    apt-get update
+                    apt-get install -y curl gettext-base iptables git docker.io
                     
-                    # Install Minikube
+                    mkdir -p /root/.local/bin
+                    export PATH=$PATH:/root/.local/bin
+
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
                     mv minikube-linux-amd64 /root/.local/bin/minikube
                     
-                    # Install kubectl
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
                     mv kubectl /root/.local/bin/kubectl
@@ -35,6 +33,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Checking out code from Git..."
+                sh "git clone https://github.com/Sivaram90876/Pipeline-test.git ."
             }
         }
 
