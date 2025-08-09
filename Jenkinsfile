@@ -9,8 +9,8 @@ pipeline {
         stage('Install Tools') {
             agent {
                 docker {
-                    image 'debian:stable' // or a similar base image
-                    user '0' // This runs the container as the root user
+                    image 'debian:stable'
+                    args '--user 0' // Correct way to specify a user in declarative agent
                 }
             }
             steps {
