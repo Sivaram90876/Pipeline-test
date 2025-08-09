@@ -7,6 +7,12 @@ pipeline {
 
     stages {
         stage('Install Tools') {
+            agent {
+                docker {
+                    image 'debian:stable' // or a similar base image
+                    user '0' // This runs the container as the root user
+                }
+            }
             steps {
                 sh '''
                     mkdir -p $HOME/.local/bin
@@ -22,7 +28,6 @@ pipeline {
                     mv kubectl $HOME/.local/bin/kubectl
                     
                     # Install iptables, required for Minikube with --driver=none
-                    # Removed 'sudo' as the Jenkins agent user likely has root permissions
                     apt-get update && apt-get install -y iptables
                 '''
             }
