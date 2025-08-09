@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'debian:stable'
+            args '--user 0'
+        }
+    }
     
     environment {
         PATH = "${env.PATH}:${env.HOME}/.local/bin"
@@ -7,16 +12,10 @@ pipeline {
 
     stages {
         stage('Install Tools') {
-            agent {
-                docker {
-                    image 'debian:stable'
-                    args '--user 0'
-                }
-            }
             steps {
                 sh '''
-                    # Install curl and other necessary tools
-                    apt-get update && apt-get install -y curl
+                    # Install curl, gettext-base, and iptables
+                    apt-get update && apt-get install -y curl gettext-base iptables
 
                     mkdir -p /root/.local/bin
                     
@@ -26,13 +25,9 @@ pipeline {
                     mv minikube-linux-amd64 /root/.local/bin/minikube
                     
                     # Install kubectl
-                    apt-get install -y gettext-base  # Required for command substitution
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
                     mv kubectl /root/.local/bin/kubectl
-                    
-                    # Install iptables, required for Minikube with --driver=none
-                    apt-get install -y iptables
                 '''
             }
         }
