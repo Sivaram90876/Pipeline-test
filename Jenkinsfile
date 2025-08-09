@@ -1,17 +1,25 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Install Tools') {
             steps {
                 sh '''
-                    # Install Minikube CLI
-                    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-                    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+                    # Create a directory for binaries that the Jenkins user can write to
+                    mkdir -p $HOME/.local/bin
                     
-                    # Install kubectl
+                    # Add this directory to the PATH for the current session
+                    export PATH="$HOME/.local/bin:$PATH"
+                    
+                    # Download Minikube and install without sudo
+                    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+                    chmod +x minikube-linux-amd64
+                    mv minikube-linux-amd64 $HOME/.local/bin/minikube
+                    
+                    # Download kubectl and install without sudo
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+                    chmod +x kubectl
+                    mv kubectl $HOME/.local/bin/kubectl
                 '''
             }
         }
