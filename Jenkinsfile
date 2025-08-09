@@ -10,25 +10,29 @@ pipeline {
             agent {
                 docker {
                     image 'debian:stable'
-                    args '--user 0' // Correct way to specify a user in declarative agent
+                    args '--user 0'
                 }
             }
             steps {
                 sh '''
-                    mkdir -p $HOME/.local/bin
+                    # Install curl and other necessary tools
+                    apt-get update && apt-get install -y curl
+
+                    mkdir -p /root/.local/bin
                     
                     # Install Minikube
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
-                    mv minikube-linux-amd64 $HOME/.local/bin/minikube
+                    mv minikube-linux-amd64 /root/.local/bin/minikube
                     
                     # Install kubectl
+                    apt-get install -y gettext-base  # Required for command substitution
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
-                    mv kubectl $HOME/.local/bin/kubectl
+                    mv kubectl /root/.local/bin/kubectl
                     
                     # Install iptables, required for Minikube with --driver=none
-                    apt-get update && apt-get install -y iptables
+                    apt-get install -y iptables
                 '''
             }
         }
