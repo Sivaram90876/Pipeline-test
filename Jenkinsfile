@@ -1,7 +1,6 @@
 pipeline {
     agent any
     
-    // Define the environment variable at the pipeline level
     environment {
         PATH = "${env.PATH}:${env.HOME}/.local/bin"
     }
@@ -10,15 +9,12 @@ pipeline {
         stage('Install Tools') {
             steps {
                 sh '''
-                    # Create a directory for binaries that the Jenkins user can write to
                     mkdir -p $HOME/.local/bin
                     
-                    # Download and install Minikube
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
                     mv minikube-linux-amd64 $HOME/.local/bin/minikube
                     
-                    # Download and install kubectl
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
                     mv kubectl $HOME/.local/bin/kubectl
@@ -29,6 +25,12 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Checking out code from Git..."
+            }
+        }
+
+        stage('Start Minikube Cluster') {
+            steps {
+                sh 'minikube start --driver=none'
             }
         }
 
