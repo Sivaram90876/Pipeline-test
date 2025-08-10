@@ -33,7 +33,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Checking out code from Git..."
-                sh "git clone https://github.com/Sivaram90876/Pipeline-test.git ."
+                // The implicit checkout at the start of the pipeline handles this.
+                // The explicit git clone command has been removed to avoid the error.
             }
         }
 
