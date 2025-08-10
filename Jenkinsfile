@@ -26,7 +26,8 @@ pipeline {
                         docker.io \
                         conntrack \
                         socat \
-                        unzip
+                        unzip \
+                        sudo
                     
                     echo "--- Installing Minikube ---"
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
