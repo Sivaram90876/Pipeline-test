@@ -1,78 +1,53 @@
 pipeline {
-    agent {
-        docker {
-            image 'debian:stable'
-            args '--privileged --user root --network host'
-        }
-    }
-    options {
-        disableConcurrentBuilds()
-    }
+    agent any
+
     environment {
-        PATH = "${env.PATH}:/usr/local/bin"
+        KUBECONFIG = "/root/.kube/config"
+        DOCKER_DRIVER = "docker"
     }
+
     stages {
         stage('Install Tools') {
             steps {
                 sh '''
-                    set -e
-                    echo "--- Installing base packages ---"
                     apt-get update
-                    apt-get install -y \
-                        curl \
-                        gettext-base \
-                        iptables \
-                        git \
-                        docker.io \
-                        conntrack \
-                        socat
-
-                    echo "--- Installing Minikube ---"
+                    apt-get install -y curl apt-transport-https ca-certificates gnupg lsb-release
+                    # Install Docker
+                    curl -fsSL https://get.docker.com | sh
+                    # Install Kubectl
+                    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+                    # Install Minikube
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     install minikube-linux-amd64 /usr/local/bin/minikube
-                    rm minikube-linux-amd64
-
-                    echo "--- Installing Kubectl ---"
-                    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                    install kubectl /usr/local/bin/kubectl
-                    rm kubectl
                 '''
             }
         }
 
-        stage('Checkout') {
+        stage('Start Minikube') {
             steps {
-                checkout scm
+                sh '''
+                    echo "Starting Minikube with Docker driver..."
+                    minikube start --driver=${DOCKER_DRIVER}
+                '''
             }
         }
 
-        stage('Start Minikube Cluster') {
+        stage('Build Docker Image') {
             steps {
-                sh 'minikube start --driver=docker --force'
-            }
-        }
-
-        stage('Build and Push Docker Image') {
-            steps {
-                script {
-                    def imageName = "sivaram9087/nature"
-                    def imageTag = "latest"
-
-                    withCredentials([usernamePassword(credentialsId: 'Dockerhub_credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-                    }
-
-                    sh "docker buildx build --platform linux/amd64 -t ${imageName}:${imageTag} . --push"
-                }
+                sh '''
+                    echo "Building Docker image..."
+                    docker build -t my-app:latest .
+                '''
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    sed -i 's|image: sivaram9087/nature:.*|image: sivaram9087/nature:latest|g' deployment.yaml
-                    minikube kubectl -- apply -f deployment.yaml
-                    minikube kubectl -- rollout status deployment/nature
+                    echo "Deploying to Kubernetes..."
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
                 '''
             }
         }
