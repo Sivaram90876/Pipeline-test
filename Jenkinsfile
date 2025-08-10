@@ -2,15 +2,13 @@ pipeline {
     agent {
         docker {
             image 'debian:stable'
-            // Correctly set the --privileged flag to give root permissions to the container
-            args '--privileged'
+            args '--privileged --user root --network host'
         }
     }
     options {
         disableConcurrentBuilds()
     }
     environment {
-        // This is still needed to find the installed tools
         PATH = "${env.PATH}:/usr/local/bin"
     }
     stages {
@@ -26,30 +24,31 @@ pipeline {
                         iptables \
                         git \
                         docker.io \
-                        sudo
-                    
-                    echo "--- Installing Minikube and Kubectl ---"
+                        conntrack \
+                        socat
+
+                    echo "--- Installing Minikube ---"
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-                    chmod +x minikube-linux-amd64
-                    mv minikube-linux-amd64 /usr/local/bin/minikube
-                    
+                    install minikube-linux-amd64 /usr/local/bin/minikube
+                    rm minikube-linux-amd64
+
+                    echo "--- Installing Kubectl ---"
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                    chmod +x kubectl
-                    mv kubectl /usr/local/bin/kubectl
+                    install kubectl /usr/local/bin/kubectl
+                    rm kubectl
                 '''
             }
         }
-        
+
         stage('Checkout') {
             steps {
-                echo "Checking out code from Git..."
+                checkout scm
             }
         }
 
         stage('Start Minikube Cluster') {
             steps {
-                // Use the docker driver which is more suitable for this environment
-                sh 'minikube start --driver=docker'
+                sh 'minikube start --driver=docker --force'
             }
         }
 
@@ -62,6 +61,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'Dockerhub_credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
                         sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
                     }
+
                     sh "docker buildx build --platform linux/amd64 -t ${imageName}:${imageTag} . --push"
                 }
             }
@@ -69,11 +69,11 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    sh "sed -i 's|image: sivaram9087/nature:.*|image: sivaram9087/nature:latest|g' deployment.yaml"
-                    sh "minikube kubectl -- apply -f deployment.yaml"
-                    sh "minikube kubectl -- rollout status deployment/nature"
-                }
+                sh '''
+                    sed -i 's|image: sivaram9087/nature:.*|image: sivaram9087/nature:latest|g' deployment.yaml
+                    minikube kubectl -- apply -f deployment.yaml
+                    minikube kubectl -- rollout status deployment/nature
+                '''
             }
         }
     }
