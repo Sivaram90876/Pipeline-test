@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'debian:stable'
-            // Use --privileged to grant the container root-level access
+            // Correctly set the --privileged flag to give root permissions to the container
             args '--privileged'
         }
     }
@@ -10,6 +10,7 @@ pipeline {
         disableConcurrentBuilds()
     }
     environment {
+        // This is still needed to find the installed tools
         PATH = "${env.PATH}:/usr/local/bin"
     }
     stages {
@@ -25,17 +26,13 @@ pipeline {
                         iptables \
                         git \
                         docker.io \
-                        conntrack \
-                        socat \
-                        unzip \
                         sudo
                     
-                    echo "--- Installing Minikube ---"
+                    echo "--- Installing Minikube and Kubectl ---"
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
                     mv minikube-linux-amd64 /usr/local/bin/minikube
                     
-                    echo "--- Installing kubectl ---"
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
                     mv kubectl /usr/local/bin/kubectl
@@ -51,7 +48,7 @@ pipeline {
 
         stage('Start Minikube Cluster') {
             steps {
-                // Use the docker driver instead of none
+                // Use the docker driver which is more suitable for this environment
                 sh 'minikube start --driver=docker'
             }
         }
