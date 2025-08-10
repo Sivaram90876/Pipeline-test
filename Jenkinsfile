@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'debian:stable'
-            // Use a privileged container to allow Minikube's docker driver to work
+            // Use --privileged to grant the container root-level access
             args '--privileged'
         }
     }
