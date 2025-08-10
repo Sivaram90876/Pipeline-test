@@ -8,6 +8,10 @@ pipeline {
     options {
         disableConcurrentBuilds()
     }
+    environment {
+        // Set the PATH for the entire pipeline
+        PATH = "${env.PATH}:/root/.local/bin"
+    }
     stages {
         stage('Install Tools') {
             steps {
@@ -17,7 +21,6 @@ pipeline {
                     apt-get install -y curl gettext-base iptables git docker.io
                     
                     mkdir -p /root/.local/bin
-                    export PATH=$PATH:/root/.local/bin
 
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
@@ -33,8 +36,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Checking out code from Git..."
-                // The implicit checkout at the start of the pipeline handles this.
-                // The explicit git clone command has been removed to avoid the error.
             }
         }
 
