@@ -26,8 +26,9 @@ pipeline {
                         docker.io \
                         conntrack \
                         socat \
-                        unzip
-
+                        unzip \
+                        containernetworking-plugins
+                    
                     echo "--- Installing Minikube ---"
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
