@@ -1,13 +1,41 @@
-# Use Nginx base image
-FROM nginx:alpine
+FROM debian:stable-slim
 
-# Remove default nginx index page
-RUN rm -rf /usr/share/nginx/html/*
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    sudo \
+    curl \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    conntrack \
+    iptables \
+    socat \
+    git \
+    docker.io \
+    unzip \
+    tar \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy website files to nginx html directory
-COPY . /usr/share/nginx/html
+# Install kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+    && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
+    && rm kubectl
 
-# Expose port 80 for the container
-EXPOSE 80
+# Install Minikube
+RUN curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
+    && install minikube-linux-amd64 /usr/local/bin/minikube \
+    && rm minikube-linux-amd64
 
-# Nginx will run automatically
+# Install CNI plugins (required for --driver=none)
+RUN curl -LO https://github.com/containernetworking/plugins/releases/download/v1.5.0/cni-plugins-linux-amd64-v1.5.0.tgz \
+    && mkdir -p /opt/cni/bin \
+    && tar -xzvf cni-plugins-linux-amd64-v1.5.0.tgz -C /opt/cni/bin \
+    && rm cni-plugins-linux-amd64-v1.5.0.tgz
+
+# Give Jenkins user access to docker
+RUN groupadd -g 999 docker && useradd -m -u 1000 -g docker jenkins && \
+    echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+USER jenkins
+WORKDIR /home/jenkins
