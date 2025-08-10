@@ -16,25 +16,40 @@ pipeline {
             steps {
                 sh '''
                     set -e
+                    echo "--- Installing base packages ---"
                     apt-get update
-                    apt-get install -y curl gettext-base iptables git docker.io conntrack
-                    
-                    # Install Minikube
+                    apt-get install -y \
+                        curl \
+                        gettext-base \
+                        iptables \
+                        git \
+                        docker.io \
+                        conntrack \
+                        socat \
+                        unzip
+
+                    echo "--- Installing Minikube ---"
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
                     mv minikube-linux-amd64 /usr/local/bin/minikube
                     
-                    # Install kubectl
+                    echo "--- Installing kubectl ---"
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
                     mv kubectl /usr/local/bin/kubectl
                     
-                    # Install crictl
+                    echo "--- Installing crictl ---"
                     CRICTL_VERSION="v1.30.0"
                     CRICTL_URL="https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-amd64.tar.gz"
                     curl -L ${CRICTL_URL} | tar zx
                     chmod +x crictl
                     mv crictl /usr/local/bin/crictl
+
+                    echo "--- Installing cri-dockerd ---"
+                    CRI_DOCKERD_VERSION="0.3.14"
+                    curl -L "https://github.com/Mirantis/cri-dockerd/releases/download/v${CRI_DOCKERD_VERSION}/cri-dockerd-${CRI_DOCKERD_VERSION}.amd64.tgz" | tar zx
+                    mv cri-dockerd/cri-dockerd /usr/local/bin/cri-dockerd
+                    chmod +x /usr/local/bin/cri-dockerd
                 '''
             }
         }
