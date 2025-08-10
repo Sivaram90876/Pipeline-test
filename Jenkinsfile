@@ -26,8 +26,7 @@ pipeline {
                         docker.io \
                         conntrack \
                         socat \
-                        unzip \
-                        containernetworking-plugins
+                        unzip
                     
                     echo "--- Installing Minikube ---"
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
@@ -51,6 +50,16 @@ pipeline {
                     curl -L "https://github.com/Mirantis/cri-dockerd/releases/download/v${CRI_DOCKERD_VERSION}/cri-dockerd-${CRI_DOCKERD_VERSION}.amd64.tgz" | tar zx
                     mv cri-dockerd/cri-dockerd /usr/local/bin/cri-dockerd
                     chmod +x /usr/local/bin/cri-dockerd
+
+                    echo "--- Installing CNI plugins ---"
+                    CNI_PLUGIN_VERSION="v1.4.0"
+                    CNI_PLUGIN_TAR="cni-plugins-linux-amd64-$CNI_PLUGIN_VERSION.tgz"
+                    CNI_PLUGIN_INSTALL_DIR="/opt/cni/bin"
+                    
+                    curl -LO "https://github.com/containernetworking/plugins/releases/download/$CNI_PLUGIN_VERSION/$CNI_PLUGIN_TAR"
+                    mkdir -p "$CNI_PLUGIN_INSTALL_DIR"
+                    tar -xf "$CNI_PLUGIN_TAR" -C "$CNI_PLUGIN_INSTALL_DIR"
+                    rm "$CNI_PLUGIN_TAR"
                 '''
             }
         }
