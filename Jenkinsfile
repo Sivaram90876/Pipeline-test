@@ -10,7 +10,7 @@ pipeline {
     }
     environment {
         // Set the PATH for the entire pipeline
-        PATH = "${env.PATH}:/root/.local/bin"
+        PATH = "${env.PATH}:/usr/local/bin"
     }
     stages {
         stage('Install Tools') {
@@ -20,15 +20,15 @@ pipeline {
                     apt-get update
                     apt-get install -y curl gettext-base iptables git docker.io
                     
-                    mkdir -p /root/.local/bin
-
+                    # Install Minikube
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
                     chmod +x minikube-linux-amd64
-                    mv minikube-linux-amd64 /root/.local/bin/minikube
+                    mv minikube-linux-amd64 /usr/local/bin/minikube
                     
+                    # Install kubectl
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     chmod +x kubectl
-                    mv kubectl /root/.local/bin/kubectl
+                    mv kubectl /usr/local/bin/kubectl
                 '''
             }
         }
@@ -36,6 +36,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Checking out code from Git..."
+                // The implicit checkout at the start of the pipeline handles this.
             }
         }
 
