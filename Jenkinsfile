@@ -10,16 +10,16 @@ pipeline {
         stage('Install Tools') {
             steps {
                 sh '''
-                    apt-get update
-                    apt-get install -y curl apt-transport-https ca-certificates gnupg lsb-release
+                    sudo apt-get update
+                    sudo apt-get install -y curl apt-transport-https ca-certificates gnupg lsb-release
                     # Install Docker
-                    curl -fsSL https://get.docker.com | sh
+                    curl -fsSL https://get.docker.com | sudo sh
                     # Install Kubectl
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+                    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
                     # Install Minikube
                     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-                    install minikube-linux-amd64 /usr/local/bin/minikube
+                    sudo install minikube-linux-amd64 /usr/local/bin/minikube
                 '''
             }
         }
@@ -28,7 +28,8 @@ pipeline {
             steps {
                 sh '''
                     echo "Starting Minikube with Docker driver..."
-                    minikube start --driver=${DOCKER_DRIVER}
+                    sudo minikube delete || true
+                    sudo minikube start --driver=${DOCKER_DRIVER} --force
                 '''
             }
         }
