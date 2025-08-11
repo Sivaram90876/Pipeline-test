@@ -41,7 +41,8 @@ RUN curl -fsSL https://get.helm.sh/helm-v3.15.3-linux-amd64.tar.gz -o helm.tar.g
  && rm -rf linux-amd64 helm.tar.gz
 
 # Create Jenkins user & give Docker permissions
-RUN groupadd -g 999 docker && useradd -m -u 1000 -g docker jenkins && \
+RUN (getent group docker || groupadd -g 999 docker) && \
+    useradd -m -u 1000 -g docker jenkins && \
     echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 USER jenkins
