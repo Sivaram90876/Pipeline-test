@@ -1,7 +1,7 @@
 FROM debian:stable-slim
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
+# Install dependencies & clean up in one layer
+RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     curl \
     apt-transport-https \
@@ -15,25 +15,32 @@ RUN apt-get update && apt-get install -y \
     docker.io \
     unzip \
     tar \
-    && rm -rf /var/lib/apt/lists/*
+    bash \
+ && rm -rf /var/lib/apt/lists/*
 
 # Install kubectl
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
-    && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
-    && rm kubectl
+ && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
+ && rm kubectl
 
 # Install Minikube
 RUN curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
-    && install minikube-linux-amd64 /usr/local/bin/minikube \
-    && rm minikube-linux-amd64
+ && install minikube-linux-amd64 /usr/local/bin/minikube \
+ && rm minikube-linux-amd64
 
-# Install CNI plugins (required for --driver=none)
+# Install CNI plugins (for --driver=none)
 RUN curl -LO https://github.com/containernetworking/plugins/releases/download/v1.5.0/cni-plugins-linux-amd64-v1.5.0.tgz \
-    && mkdir -p /opt/cni/bin \
-    && tar -xzvf cni-plugins-linux-amd64-v1.5.0.tgz -C /opt/cni/bin \
-    && rm cni-plugins-linux-amd64-v1.5.0.tgz
+ && mkdir -p /opt/cni/bin \
+ && tar -xzvf cni-plugins-linux-amd64-v1.5.0.tgz -C /opt/cni/bin \
+ && rm cni-plugins-linux-amd64-v1.5.0.tgz
 
-# Give Jenkins user access to docker
+# Install Helm
+RUN curl -fsSL https://get.helm.sh/helm-v3.15.3-linux-amd64.tar.gz -o helm.tar.gz \
+ && tar -zxvf helm.tar.gz \
+ && mv linux-amd64/helm /usr/local/bin/helm \
+ && rm -rf linux-amd64 helm.tar.gz
+
+# Create Jenkins user & give Docker permissions
 RUN groupadd -g 999 docker && useradd -m -u 1000 -g docker jenkins && \
     echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
