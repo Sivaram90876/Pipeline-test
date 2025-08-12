@@ -1,7 +1,6 @@
 FROM debian:stable-slim
 
 # Install dependencies & clean up in one layer
-# This includes the docker client (docker.io) and other tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     curl \
@@ -44,11 +43,7 @@ RUN curl -fsSL https://get.helm.sh/helm-v3.15.3-linux-amd64.tar.gz -o helm.tar.g
 # Create Jenkins user & give Docker permissions
 RUN (getent group docker || groupadd -g 999 docker) && \
     useradd -m -u 1000 -g docker jenkins && \
-    echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    usermod -aG docker jenkins
-
-# Explicitly add /usr/bin to the PATH. This is essential for the `docker` command to be found.
-ENV PATH="/usr/bin:${PATH}"
+    echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 USER jenkins
 WORKDIR /home/jenkins
