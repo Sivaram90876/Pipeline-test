@@ -2,6 +2,7 @@ pipeline {
     agent {
         docker {
             image 'sivaram9087/jenkins-minikube:latest'
+            // This is the critical line that lets the container talk to the host's Docker daemon.
             args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
@@ -9,8 +10,8 @@ pipeline {
     environment {
         // Set your Docker Hub username here
         DOCKER_HUB_USER = 'sivaram9087'
-        // Create a unique tag for the Docker image
-        IMAGE_TAG = "v${env.BUILD_NUMBER}" 
+        // Use a unique tag for the Docker image
+        IMAGE_TAG = "v${env.BUILD_NUMBER}"
         DOCKER_IMAGE = "${DOCKER_HUB_USER}/nature:${IMAGE_TAG}"
     }
 
@@ -18,6 +19,7 @@ pipeline {
         stage('Check Environment') {
             steps {
                 sh 'echo "User: $(whoami)"'
+                // This command should now succeed
                 sh 'docker --version'
                 sh 'kubectl version --client'
                 sh 'minikube version'
@@ -50,10 +52,13 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Deploy to Kubernetes') {
             steps {
                 // Apply the deployment with the new image tag
+                // Note: your deployment.yaml references 'sivaram9087/nature:latest'
+                // You should update it to use the dynamic tag. A cleaner approach is to use a sed command:
+                sh "sed -i 's|sivaram9087/nature:latest|${DOCKER_IMAGE}|' deployment.yaml"
                 sh "kubectl apply -f deployment.yaml"
                 sh "kubectl apply -f service.yaml"
                 sh "kubectl apply -f ingress.yaml"
