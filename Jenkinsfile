@@ -6,6 +6,14 @@ pipeline {
         }
     }
 
+    environment {
+        // Set your Docker Hub username here
+        DOCKER_HUB_USER = 'sivaram9087'
+        // Create a unique tag for the Docker image
+        IMAGE_TAG = "v${env.BUILD_NUMBER}" 
+        DOCKER_IMAGE = "${DOCKER_HUB_USER}/nature:${IMAGE_TAG}"
+    }
+
     stages {
         stage('Check Environment') {
             steps {
@@ -26,15 +34,30 @@ pipeline {
                 '''
             }
         }
-
-        stage('Deploy Sample App') {
+        
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                echo "Deploying a sample Nginx app..."
-                kubectl create deployment nginx --image=nginx || true
-                kubectl expose deployment nginx --port=80 --type=NodePort || true
-                kubectl get all
-                '''
+                sh "docker build -t ${DOCKER_IMAGE} ."
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                // Ensure you have configured Docker Hub credentials in Jenkins
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh "echo ${DOCKER_PASSWORD} | docker login --username ${DOCKER_USERNAME} --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE}"
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                // Apply the deployment with the new image tag
+                sh "kubectl apply -f deployment.yaml"
+                sh "kubectl apply -f service.yaml"
+                sh "kubectl apply -f ingress.yaml"
+                sh "kubectl get all"
             }
         }
 
