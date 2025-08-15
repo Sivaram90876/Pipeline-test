@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('Dockerhub_credentials')  // Jenkins credentials ID
+        DOCKERHUB_CREDENTIALS = credentials('Dockerhub_credentials')  // Jenkins credentials ID for Docker Hub
         DOCKERHUB_USER = "${DOCKERHUB_CREDENTIALS_USR}"
         DOCKERHUB_PASS = "${DOCKERHUB_CREDENTIALS_PSW}"
         IMAGE_NAME = "sivaram9087/nature-service"
-        KUBECONFIG_PATH = "/var/jenkins_home/.kube/config"  // Path where kubeconfig will be mounted
+        KUBECONFIG_FILE = credentials('kubeconfig-file') // Jenkins credentials ID for kubeconfig file
     }
 
     stages {
@@ -43,8 +43,8 @@ pipeline {
             steps {
                 script {
                     sh """
-                    export KUBECONFIG=${KUBECONFIG_PATH}
-                    kubectl set image deployment/nature-deployment nature-container=$IMAGE_NAME:${BUILD_NUMBER} --record
+                    export KUBECONFIG=${KUBECONFIG_FILE}
+                    kubectl set image deployment/nature-deployment nature-container=$IMAGE_NAME:${BUILD_NUMBER}
                     kubectl rollout status deployment/nature-deployment
                     """
                 }
