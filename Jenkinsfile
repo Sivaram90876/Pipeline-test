@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-repo/nature-pipeline.git'
+                git branch: 'main', url: 'https://github.com/Sivaram90876/Pipeline-test.git'
             }
         }
 
