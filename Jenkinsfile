@@ -2,25 +2,25 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "sivaram9087/nature-service"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')  
+        DOCKERHUB_USER = "sivaram9087"   // Your DockerHub username
+        IMAGE_NAME = "nature-service"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'nature-pipeline',
-                    url: 'https://github.com/Sivaram90876/Pipeline-test.git'
+                git branch: 'main', url: 'https://github.com/your-repo/nature-pipeline.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'Dockerhub_credentials',
-                                                 usernameVariable: 'DOCKERHUB_USER',
-                                                 passwordVariable: 'DOCKERHUB_PASS')]) {
+                script {
+                    IMAGE_TAG = "${env.BUILD_NUMBER}"
                     sh """
-                    echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                    docker build -t $IMAGE_NAME:${BUILD_NUMBER} .
+                        docker build -t $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG .
+                        docker tag $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_USER/$IMAGE_NAME:latest
                     """
                 }
             }
@@ -28,18 +28,11 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                sh """
-                docker push $IMAGE_NAME:${BUILD_NUMBER}
-                """
-            }
-        }
-
-        stage('Deploy to Minikube') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
+                script {
                     sh """
-                    kubectl set image deployment/nature-deployment nature-container=$IMAGE_NAME:${BUILD_NUMBER}
-                    kubectl rollout status deployment/nature-deployment
+                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                        docker push $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
+                        docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
                     """
                 }
             }
@@ -48,10 +41,11 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deployment successful!"
+            echo "✅ Build and push successful: $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG"
+            echo "👉 Next step: run 'kubectl set image deployment/nature-deployment nature-container=$DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG' in your Minikube"
         }
         failure {
-            echo "❌ Deployment failed!"
+            echo "❌ Build or push failed"
         }
     }
 }
