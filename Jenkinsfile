@@ -29,11 +29,13 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    sh """
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                        docker push $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
-                        docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
-                    """
+                    withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+                        sh """
+                            echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
+                            docker push $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
+                            docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
+                        """
+                    }
                 }
             }
         }
