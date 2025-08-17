@@ -19,7 +19,7 @@ pipeline {
                 script {
                     IMAGE_TAG = "${env.BUILD_NUMBER}"
                     sh """
-                        docker build -t $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG .
+                        docker build -t $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG -f nature-pipeline/dockerfile .
                         docker tag $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_USER/$IMAGE_NAME:latest
                     """
                 }
