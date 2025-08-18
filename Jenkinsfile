@@ -21,7 +21,6 @@ pipeline {
                     sh """
                     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
                     docker build -t $IMAGE_NAME:${BUILD_NUMBER} -f dockerfile .
-                    docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:latest
                     """
                 }
             }
@@ -31,7 +30,15 @@ pipeline {
             steps {
                 sh """
                 docker push $IMAGE_NAME:${BUILD_NUMBER}
-                docker push $IMAGE_NAME:latest
+                """
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                kubectl set image deployment/nature-deployment nature-container=$IMAGE_NAME:${BUILD_NUMBER} --record
+                kubectl rollout status deployment/nature-deployment
                 """
             }
         }
@@ -39,11 +46,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and push successful: $IMAGE_NAME:${BUILD_NUMBER}"
-            echo "👉 Next step: run 'kubectl set image deployment/nature-deployment nature-container=$IMAGE_NAME:${BUILD_NUMBER}' in your Minikube"
+            echo "✅ Successfully deployed $IMAGE_NAME:${BUILD_NUMBER}"
         }
         failure {
-            echo "❌ Build or push failed"
+            echo "❌ Build/Push/Deploy failed"
         }
-    }   
+    }
 }
