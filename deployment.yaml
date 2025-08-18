@@ -17,5 +17,6 @@ spec:
       containers:
       - name: nature-container
         image: sivaram9087/nature-service:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
