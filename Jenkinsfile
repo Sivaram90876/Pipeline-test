@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "sivaram9087/nature-service"
-        LOCAL_PATH = "C:\\Users\\HP\\Pipeline-test"
+        LOCAL_PATH = "/var/jenkins_home/Pipeline-test"   // inside Jenkins container
     }
 
     stages {
@@ -39,14 +39,14 @@ pipeline {
 
         stage('Sync Code to Local Path') {
             steps {
-                bat """
-                cd %LOCAL_PATH%
-                if exist .git (
+                sh """
+                if [ -d "$LOCAL_PATH/.git" ]; then
+                    cd $LOCAL_PATH
                     git reset --hard
                     git pull origin nature-pipeline
-                ) else (
-                    git clone -b nature-pipeline https://github.com/Sivaram90876/Pipeline-test.git %LOCAL_PATH%
-                )
+                else
+                    git clone -b nature-pipeline https://github.com/Sivaram90876/Pipeline-test.git $LOCAL_PATH
+                fi
                 """
             }
         }
@@ -56,7 +56,7 @@ pipeline {
         success {
             echo "✅ Build & push successful: $IMAGE_NAME:${BUILD_NUMBER}"
             echo "📂 Repo synced to: $LOCAL_PATH"
-            echo "👉 Now run: kubectl rollout restart deployment/nature-deployment && minikube service nature-service"
+            echo "👉 Next: run 'kubectl rollout restart deployment/nature-deployment' && 'minikube service nature-service'"
         }
         failure {
             echo "❌ Build or push failed"
