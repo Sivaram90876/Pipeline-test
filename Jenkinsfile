@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         IMAGE_NAME = "sivaram9087/nature-service"
+        DEPLOYMENT_NAME = "nature-deployment"
+        CONTAINER_NAME = "nature-container"
     }
 
     stages {
@@ -21,6 +23,7 @@ pipeline {
                     sh """
                     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
                     docker build -t $IMAGE_NAME:${BUILD_NUMBER} -f dockerfile .
+                    docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:latest
                     """
                 }
             }
@@ -30,15 +33,16 @@ pipeline {
             steps {
                 sh """
                 docker push $IMAGE_NAME:${BUILD_NUMBER}
+                docker push $IMAGE_NAME:latest
                 """
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Minikube') {
             steps {
                 sh """
-                kubectl set image deployment/nature-deployment nature-container=$IMAGE_NAME:${BUILD_NUMBER} --record
-                kubectl rollout status deployment/nature-deployment
+                echo "🚀 Restarting deployment to pick up latest image..."
+                kubectl rollout restart deployment/$DEPLOYMENT_NAME
                 """
             }
         }
@@ -46,10 +50,11 @@ pipeline {
 
     post {
         success {
-            echo "✅ Successfully deployed $IMAGE_NAME:${BUILD_NUMBER}"
+            echo "✅ Build, push, and rollout restart successful!"
+            echo "👉 Deployment $DEPLOYMENT_NAME is now running the latest image."
         }
         failure {
-            echo "❌ Build/Push/Deploy failed"
+            echo "❌ Build, push, or deploy failed"
         }
     }
 }
