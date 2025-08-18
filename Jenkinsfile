@@ -3,8 +3,6 @@ pipeline {
 
     environment {
         IMAGE_NAME = "sivaram9087/nature-service"
-        DEPLOYMENT_NAME = "nature-deployment"
-        CONTAINER_NAME = "nature-container"
     }
 
     stages {
@@ -37,24 +35,16 @@ pipeline {
                 """
             }
         }
-
-        stage('Deploy to Minikube') {
-            steps {
-                sh """
-                echo "🚀 Restarting deployment to pick up latest image..."
-                kubectl rollout restart deployment/$DEPLOYMENT_NAME
-                """
-            }
-        }
     }
 
     post {
         success {
-            echo "✅ Build, push, and rollout restart successful!"
-            echo "👉 Deployment $DEPLOYMENT_NAME is now running the latest image."
+            echo "✅ Build and push successful: $IMAGE_NAME:${BUILD_NUMBER}"
+            echo "👉 Now run locally: kubectl rollout restart deployment/nature-deployment"
+            echo "👉 And access app with: minikube service nature-service"
         }
         failure {
-            echo "❌ Build, push, or deploy failed"
+            echo "❌ Build or push failed"
         }
-    }
+    }   
 }
