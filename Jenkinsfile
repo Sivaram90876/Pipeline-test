@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "sivaram9087/nature-service"
+        LOCAL_PATH = "C:\\Users\\HP\\Pipeline-test"
     }
 
     stages {
@@ -35,16 +36,30 @@ pipeline {
                 """
             }
         }
+
+        stage('Sync Code to Local Path') {
+            steps {
+                bat """
+                cd %LOCAL_PATH%
+                if exist .git (
+                    git reset --hard
+                    git pull origin nature-pipeline
+                ) else (
+                    git clone -b nature-pipeline https://github.com/Sivaram90876/Pipeline-test.git %LOCAL_PATH%
+                )
+                """
+            }
+        }
     }
 
     post {
         success {
-            echo "✅ Build and push successful: $IMAGE_NAME:${BUILD_NUMBER}"
-            echo "👉 Now run locally: kubectl rollout restart deployment/nature-deployment"
-            echo "👉 And access app with: minikube service nature-service"
+            echo "✅ Build & push successful: $IMAGE_NAME:${BUILD_NUMBER}"
+            echo "📂 Repo synced to: $LOCAL_PATH"
+            echo "👉 Now run: kubectl rollout restart deployment/nature-deployment && minikube service nature-service"
         }
         failure {
             echo "❌ Build or push failed"
         }
-    }   
+    }
 }
